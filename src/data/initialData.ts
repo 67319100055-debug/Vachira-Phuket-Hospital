@@ -1,4 +1,4 @@
-import { DrugItem, NewsItem, KnowledgeArticle, StepInfographic, DocumentDownload, QueueItem, AdminUser, BannerConfig } from '../types';
+import { DrugItem, NewsItem, KnowledgeArticle, StepInfographic, DocumentDownload, QueueItem, AdminUser, BannerConfig, PharmacistConsultationItem } from '../types';
 
 export const INITIAL_BANNER: BannerConfig = {
   headline: 'ดูแลด้วยหัวใจ',
@@ -388,3 +388,43 @@ export const CONTACT_INFO = {
     { day: 'ห้องจ่ายยาฉุกเฉิน (ER)', time: 'เปิดบริการตลอด 24 ชั่วโมง' }
   ]
 };
+
+export const INITIAL_CONSULTATIONS: PharmacistConsultationItem[] = [
+  {
+    id: 'consult-1',
+    patientName: 'คุณกรรณิการ์ ศรีสวัสดิ์',
+    phone: '081-555-1234',
+    drugName: 'Warfarin 3 mg (ยาวาร์ฟาริน ป้องกันลิ่มเลือด)',
+    category: 'วิธีรับประทานยาและอาหารที่ต้องระวัง',
+    question: 'คุณหมอปรับขนาดยาวาร์ฟารินใหม่เป็นวันจันทร์ พุธ ศุกร์ ทาน 1 เม็ดครึ่ง วันอื่น 1 เม็ด แล้วลืมทานของวันพุธ เช้าวันพฤหัสต้องทานชดเชยหรือไม่คะ?',
+    status: 'pending',
+    createdAt: 'วันนี้, 09:15 น.',
+    isRead: false,
+  },
+  {
+    id: 'consult-2',
+    patientName: 'นายประสิทธิ์ วัฒนาการ',
+    phone: '089-777-8899',
+    drugName: 'Amlodipine 5 mg, Enalapril 10 mg',
+    category: 'อาการข้างเคียงจากยา',
+    question: 'ทานยาลดความดันแล้วมีอาการไอแห้งๆ ตลอดทั้งวัน เป็นมาประมาณ 2 สัปดาห์แล้ว ต้องหยุดยาตัวไหนหรือเปล่าครับ หรือต้องพบแพทย์?',
+    status: 'pending',
+    createdAt: 'วันนี้, 08:30 น.',
+    isRead: false,
+  },
+  {
+    id: 'consult-3',
+    patientName: 'นางสาววิไลลักษณ์ พรหมแก้ว',
+    phone: '095-123-4567',
+    drugName: 'Amoxicillin/Clavulanate (Augmentin)',
+    category: 'แพ้ยาหรืออาการไม่พึงประสงค์',
+    question: 'ทานยาฆ่าเชื้อหลังผ่าตัดฟันคุดวันที่ 2 แล้วเริ่มมีผื่นคันขึ้นที่แขนเล็กน้อย แต่ยังไม่มีอาการบวมหรือแน่นหน้าอก ควรกินต่อไหมคะ?',
+    status: 'answered',
+    createdAt: 'เมื่อวานนี้, 14:20 น.',
+    isRead: true,
+    answeredBy: 'ภก.อดิศักดิ์ (Admin)',
+    answeredAt: 'เมื่อวานนี้, 15:05 น.',
+    pharmacistNotes: 'โทรกลับแนะนำให้หยุดยาก่อน นำแผงยามาพบแพทย์หรือเภสัชกรที่ห้องจ่ายยาเพื่อประเมินผื่นแพ้ยาและเปลี่ยนกลุ่มยาปฏิชีวนะ',
+  },
+];
+

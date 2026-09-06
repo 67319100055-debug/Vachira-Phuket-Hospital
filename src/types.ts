@@ -51,12 +51,16 @@ export interface StepInfographic {
 export interface DocumentDownload {
   id: string;
   title: string;
+  description?: string;
   category: string;
   fileSize: string;
   fileType: string;
   downloads: number;
   date: string;
   url: string;
+  fileName?: string;
+  fileData?: string; // Data URL / Base64 for actual download
+  isExternalLink?: boolean;
 }
 
 export interface QueueItem {
@@ -78,6 +82,21 @@ export interface AdminUser {
   department: string;
   email: string;
   lastLogin: string;
+}
+
+export interface PharmacistConsultationItem {
+  id: string;
+  patientName: string;
+  phone: string;
+  drugName?: string;
+  category?: string;
+  question: string;
+  status: 'pending' | 'in_progress' | 'answered';
+  createdAt: string;
+  isRead?: boolean;
+  answeredBy?: string;
+  answeredAt?: string;
+  pharmacistNotes?: string;
 }
 
 export interface BannerConfig {
@@ -111,6 +130,7 @@ export type PublicNavSection =
 
 export type AdminSection =
   | 'dashboard'
+  | 'consultations'
   | 'drugs'
   | 'services'
   | 'knowledge'

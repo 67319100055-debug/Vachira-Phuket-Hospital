@@ -24,9 +24,11 @@ import {
   Building,
   HeartHandshake,
   Package,
-  FileCheck
+  FileCheck,
+  ExternalLink,
 } from 'lucide-react';
 import { CONTACT_INFO } from '../data/initialData';
+import { downloadDocumentFile, getFileTypeBadge } from '../utils/fileHelpers';
 
 interface PublicSubViewsProps {
   section: PublicNavSection;
@@ -38,6 +40,8 @@ interface PublicSubViewsProps {
   onOpenDrugDetail: (drug: DrugItem) => void;
   onOpenArticleDetail: (article: KnowledgeArticle) => void;
   onOpenNewsDetail: (item: NewsItem) => void;
+  onDownloadDocument?: (docId: string) => void;
+  onOpenConsultModal?: () => void;
 }
 
 export const PublicSubViews: React.FC<PublicSubViewsProps> = ({
@@ -50,8 +54,15 @@ export const PublicSubViews: React.FC<PublicSubViewsProps> = ({
   onOpenDrugDetail,
   onOpenArticleDetail,
   onOpenNewsDetail,
+  onDownloadDocument,
+  onOpenConsultModal,
 }) => {
   const [filterQuery, setFilterQuery] = useState('');
+  const [docSearchQuery, setDocSearchQuery] = useState('');
+  const [docCategoryFilter, setDocCategoryFilter] = useState('ทั้งหมด');
+  const [newsSearchQuery, setNewsSearchQuery] = useState('');
+  const [newsCategoryFilter, setNewsCategoryFilter] = useState('ทั้งหมด');
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const renderContent = () => {
     switch (section) {
@@ -620,49 +631,137 @@ export const PublicSubViews: React.FC<PublicSubViewsProps> = ({
       // ข่าวสารกิจกรรม
       // -------------------------------------------------------------
       case 'news': {
+        const publishedNews = news.filter((item) => item.published !== false);
+        const availableCategories = [
+          'ทั้งหมด',
+          ...Array.from(new Set(publishedNews.map((n) => n.category).filter(Boolean))),
+        ];
+
+        const filteredNews = publishedNews.filter((item) => {
+          const matchCat =
+            newsCategoryFilter === 'ทั้งหมด' || item.category === newsCategoryFilter;
+          const matchQuery =
+            item.title.toLowerCase().includes(newsSearchQuery.toLowerCase()) ||
+            item.summary.toLowerCase().includes(newsSearchQuery.toLowerCase()) ||
+            item.category.toLowerCase().includes(newsSearchQuery.toLowerCase());
+          return matchCat && matchQuery;
+        });
+
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-2">
-                <Newspaper className="w-6 h-6 text-blue-600" />
-                <span>ข่าวสารและกิจกรรมกลุ่มงานเภสัชกรรม</span>
-              </h2>
-              <p className="text-xs text-slate-500 mb-6">
-                ข่าวสาร ประชาสัมพันธ์ และกิจกรรมส่งเสริมสุขภาพ
-              </p>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <Newspaper className="w-6 h-6 text-blue-600" />
+                    <span>ข่าวสารและกิจกรรมกลุ่มงานเภสัชกรรม</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1">
+                    ข่าวสาร ประชาสัมพันธ์ กิจกรรมสัปดาห์เภสัชกรรม และประกาศเตือนภัยสุขภาพ
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {news.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => onOpenNewsDetail(item)}
-                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col"
-                  >
-                    <div className="aspect-16/9 bg-slate-100 overflow-hidden">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover hover:scale-105 transition-transform"
-                      />
-                    </div>
-                    <div className="p-4 flex-1 flex flex-col justify-between">
-                      <div>
-                        <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-700">
+                    พบ {filteredNews.length} ข่าว
+                  </span>
+                </div>
+              </div>
+
+              {/* Search & Category Tabs */}
+              <div className="space-y-3 mb-6">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="ค้นหาหัวข้อข่าวสาร หรือเนื้อหากิจกรรม..."
+                    value={newsSearchQuery}
+                    onChange={(e) => setNewsSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-hidden focus:ring-2 focus:ring-blue-500 bg-slate-50/50"
+                  />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  {newsSearchQuery && (
+                    <button
+                      onClick={() => setNewsSearchQuery('')}
+                      className="absolute right-3 top-2.5 text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      ล้างค้นหา
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+                  {availableCategories.map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setNewsCategoryFilter(cat)}
+                      className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-colors ${
+                        newsCategoryFilter === cat
+                          ? 'bg-blue-600 text-white font-bold shadow-2xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* News Grid */}
+              {filteredNews.length === 0 ? (
+                <div className="p-12 text-center text-slate-400 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                  <Newspaper className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                  <p className="text-sm font-semibold text-slate-700">ไม่พบข้อมูลข่าวสารที่ตรงกับเงื่อนไข</p>
+                  <p className="text-xs text-slate-400 mt-1">ลองเปลี่ยนคำค้นหา หรือเลือกหมวดหมู่อื่น</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {filteredNews.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => onOpenNewsDetail(item)}
+                      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col group hover:-translate-y-0.5"
+                    >
+                      <div className="aspect-16/9 bg-slate-100 overflow-hidden relative">
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src =
+                              'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=800&q=80';
+                          }}
+                        />
+                        <span className="absolute top-2.5 left-2.5 text-[10px] font-bold text-white bg-slate-900/80 px-2.5 py-0.5 rounded-full backdrop-blur-xs">
                           {item.category}
                         </span>
-                        <h4 className="font-bold text-slate-900 text-sm mt-2 mb-1 line-clamp-2">
-                          {item.title}
-                        </h4>
-                        <p className="text-xs text-slate-500 line-clamp-2">{item.summary}</p>
                       </div>
-                      <div className="mt-3 pt-2 border-t border-slate-100 text-xs font-semibold text-emerald-700">
-                        อ่านข่าวฉบับเต็ม →
+                      <div className="p-4 flex-1 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-2 text-[10px] text-slate-400 mb-1.5">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {item.date}
+                            </span>
+                            <span>•</span>
+                            <span>{item.views.toLocaleString()} อ่าน</span>
+                          </div>
+                          <h4 className="font-bold text-slate-900 text-sm mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                            {item.title}
+                          </h4>
+                          <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                            {item.summary}
+                          </p>
+                        </div>
+                        <div className="mt-4 pt-2 border-t border-slate-100 text-xs font-semibold text-blue-600 flex items-center justify-between">
+                          <span>อ่านข่าวฉบับเต็ม</span>
+                          <span>→</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -672,51 +771,159 @@ export const PublicSubViews: React.FC<PublicSubViewsProps> = ({
       // เอกสารดาวน์โหลด
       // -------------------------------------------------------------
       case 'documents': {
+        const availableCategories = [
+          'ทั้งหมด',
+          ...Array.from(new Set(documents.map((d) => d.category))),
+        ];
+
+        const filteredDocs = documents.filter((doc) => {
+          const matchesSearch =
+            doc.title.toLowerCase().includes(docSearchQuery.toLowerCase()) ||
+            (doc.description && doc.description.toLowerCase().includes(docSearchQuery.toLowerCase())) ||
+            doc.category.toLowerCase().includes(docSearchQuery.toLowerCase());
+          const matchesCategory =
+            docCategoryFilter === 'ทั้งหมด' || doc.category === docCategoryFilter;
+          return matchesSearch && matchesCategory;
+        });
+
+        const handleDownload = (doc: DocumentDownload) => {
+          setDownloadingId(doc.id);
+          downloadDocumentFile(doc);
+          if (onDownloadDocument) {
+            onDownloadDocument(doc.id);
+          }
+          setTimeout(() => {
+            setDownloadingId((current) => (current === doc.id ? null : current));
+          }, 1500);
+        };
+
         return (
           <div className="space-y-6">
             <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs">
-              <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-2">
-                <FileText className="w-6 h-6 text-emerald-600" />
-                <span>เอกสารดาวน์โหลด & แบบฟอร์ม</span>
-              </h2>
-              <p className="text-xs text-slate-500 mb-6">
-                แบบฟอร์มขอรับบริการ คู่มือการใช้ยา และเอกสารวิชาการสำหรับประชาชนและบุคลากร
-              </p>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-1">
+                    <FileText className="w-6 h-6 text-emerald-600" />
+                    <span>เอกสารดาวน์โหลด & แบบฟอร์ม</span>
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    แบบฟอร์มขอรับบริการ คู่มือการใช้ยา และเอกสารวิชาการสำหรับประชาชนและบุคลากรทางการแพทย์
+                  </p>
+                </div>
 
-              <div className="space-y-3">
-                {documents.map((doc) => (
-                  <div
-                    key={doc.id}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-emerald-300 transition-colors flex items-center justify-between gap-4 bg-slate-50/50"
+                {/* Search Bar */}
+                <div className="relative w-full md:w-72 shrink-0">
+                  <input
+                    type="text"
+                    placeholder="ค้นหาชื่อเอกสาร หรือแบบฟอร์ม..."
+                    value={docSearchQuery}
+                    onChange={(e) => setDocSearchQuery(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 border rounded-xl border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-hidden bg-slate-50"
+                  />
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+                </div>
+              </div>
+
+              {/* Category Filter Tabs */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 border-b border-slate-100 text-xs">
+                {availableCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setDocCategoryFilter(cat)}
+                    className={`px-3 py-1.5 rounded-xl font-medium shrink-0 transition-colors ${
+                      docCategoryFilter === cat
+                        ? 'bg-emerald-700 text-white font-bold shadow-2xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-red-100 text-red-700 font-bold flex items-center justify-center text-xs shrink-0">
-                        {doc.fileType}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{doc.title}</h4>
-                        <div className="flex items-center gap-3 text-[11px] text-slate-500 mt-0.5">
-                          <span>หมวดหมู่: {doc.category}</span>
-                          <span>ขนาด: {doc.fileSize}</span>
-                          <span>ดาวน์โหลดแล้ว {doc.downloads.toLocaleString()} ครั้ง</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <a
-                      href={doc.url}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        alert(`จำลองการดาวน์โหลดไฟล์: ${doc.title}`);
-                      }}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shrink-0 shadow-2xs"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>ดาวน์โหลด</span>
-                    </a>
-                  </div>
+                    {cat}
+                  </button>
                 ))}
               </div>
+
+              {/* Document List */}
+              {filteredDocs.length === 0 ? (
+                <div className="py-12 text-center text-slate-400 text-xs">
+                  <FileText className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                  <div className="font-bold text-slate-600 text-sm">ไม่พบเอกสารหรือแบบฟอร์มที่ค้นหา</div>
+                  <p className="mt-1 text-slate-400">
+                    โปรดตรวจสอบคำค้นหา หรือเลือกหมวดหมู่อื่น
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {filteredDocs.map((doc) => {
+                    const badge = getFileTypeBadge(doc.fileType);
+                    const isDownloading = downloadingId === doc.id;
+
+                    return (
+                      <div
+                        key={doc.id}
+                        className="p-4 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-slate-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white shadow-2xs"
+                      >
+                        <div className="flex items-start gap-3.5">
+                          {/* File Icon Badge */}
+                          <div
+                            className={`w-11 h-11 rounded-xl flex items-center justify-center text-xs font-black shrink-0 tracking-wider uppercase border shadow-2xs ${badge.badge}`}
+                          >
+                            {doc.fileType}
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h4 className="font-bold text-slate-900 text-sm">{doc.title}</h4>
+                              {doc.isExternalLink && (
+                                <span className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 text-[10px] font-semibold">
+                                  <ExternalLink className="w-2.5 h-2.5" />
+                                  ลิงก์ภายนอก
+                                </span>
+                              )}
+                            </div>
+
+                            {doc.description && (
+                              <p className="text-xs text-slate-500 mt-1 line-clamp-2">
+                                {doc.description}
+                              </p>
+                            )}
+
+                            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1.5 flex-wrap">
+                              <span className="text-slate-600 font-medium bg-slate-100 px-2 py-0.5 rounded-md">
+                                {doc.category}
+                              </span>
+                              <span>ขนาด: {doc.fileSize}</span>
+                              <span>วันที่: {doc.date}</span>
+                              <span className="text-emerald-700 font-medium">
+                                ดาวน์โหลด {doc.downloads.toLocaleString()} ครั้ง
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Download / Open Button */}
+                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => handleDownload(doc)}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs ${
+                              isDownloading
+                                ? 'bg-emerald-800 text-white'
+                                : 'bg-emerald-600 hover:bg-emerald-700 text-white hover:shadow-sm'
+                            }`}
+                          >
+                            <Download className={`w-3.5 h-3.5 ${isDownloading ? 'animate-bounce' : ''}`} />
+                            <span>
+                              {isDownloading
+                                ? 'กำลังดาวน์โหลด...'
+                                : doc.isExternalLink
+                                ? 'เปิดเอกสาร ↗'
+                                : 'ดาวน์โหลด'}
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         );
@@ -772,20 +979,33 @@ export const PublicSubViews: React.FC<PublicSubViewsProps> = ({
                     </div>
                   </div>
 
-                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center">
-                    <h4 className="font-bold text-emerald-950 text-sm mb-1">
-                      โทรปรึกษาเภสัชกรสายด่วน
-                    </h4>
-                    <p className="text-emerald-800 mb-3 text-xs">
-                      กดปุ่มเพื่อติดต่อเจ้าหน้าที่ห้องจ่ายยาได้ทันที
-                    </p>
-                    <a
-                      href="tel:076361234"
-                      className="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-xs"
-                    >
-                      <PhoneCall className="w-4 h-4" />
-                      <span>076-361234 (ต่อ 1234)</span>
-                    </a>
+                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-center space-y-2.5">
+                    <div>
+                      <h4 className="font-bold text-emerald-950 text-sm mb-0.5">
+                        โทรปรึกษาเภสัชกรสายด่วน
+                      </h4>
+                      <p className="text-emerald-800 text-xs">
+                        กดปุ่มเพื่อติดต่อเจ้าหน้าที่ห้องจ่ายยาได้ทันที
+                      </p>
+                    </div>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                      <a
+                        href="tel:076361234"
+                        className="inline-flex items-center gap-2 px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-xs shadow-xs transition-colors"
+                      >
+                        <PhoneCall className="w-4 h-4" />
+                        <span>076-361234 (ต่อ 1234)</span>
+                      </a>
+                      {onOpenConsultModal && (
+                        <button
+                          type="button"
+                          onClick={onOpenConsultModal}
+                          className="inline-flex items-center gap-2 px-5 py-2.5 bg-teal-800 hover:bg-teal-900 text-white font-bold rounded-xl text-xs shadow-xs transition-colors"
+                        >
+                          <span>💬 ฝากคำถามออนไลน์</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

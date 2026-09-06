@@ -1,7 +1,26 @@
 import React, { useState } from 'react';
 import { DocumentDownload, AdminUser, AdminSection } from '../../types';
-import { FileText, Users, BarChart3, Settings, Plus, Trash2, Check, Download, ShieldCheck, Phone } from 'lucide-react';
+import {
+  FileText,
+  Users,
+  BarChart3,
+  Settings,
+  Plus,
+  Trash2,
+  Check,
+  Download,
+  ShieldCheck,
+  Phone,
+  AlertTriangle,
+  CheckCircle2,
+  X,
+  Eye,
+  EyeOff,
+  Sliders,
+  RotateCcw,
+} from 'lucide-react';
 import { CONTACT_INFO } from '../../data/initialData';
+import { AdminDocumentManager } from './AdminDocumentManager';
 
 interface AdminServicesAndDocsProps {
   section: AdminSection;
@@ -18,55 +37,72 @@ export const AdminServicesAndDocs: React.FC<AdminServicesAndDocsProps> = ({
   onUpdateDocuments,
   onUpdateUsers,
 }) => {
-  const [docList, setDocList] = useState<DocumentDownload[]>(documents);
   const [userList, setUserList] = useState<AdminUser[]>(users);
-  const [newDocTitle, setNewDocTitle] = useState('');
-  const [newDocCategory, setNewDocCategory] = useState('บริการผู้ป่วย');
-  const [newDocSize, setNewDocSize] = useState('1.2 MB');
 
   const [newUserName, setNewUserName] = useState('');
   const [newUserRole, setNewUserRole] = useState<'admin' | 'pharmacist' | 'staff'>('pharmacist');
   const [newUserUsername, setNewUserUsername] = useState('');
 
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [deleteConfirmUser, setDeleteConfirmUser] = useState<AdminUser | null>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Add Doc
-  const handleAddDoc = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newDocTitle) return;
-    const newDoc: DocumentDownload = {
-      id: `doc_${Date.now()}`,
-      title: newDocTitle,
-      category: newDocCategory,
-      fileSize: newDocSize,
-      fileType: 'PDF',
-      downloads: 0,
-      date: 'วันนี้',
-      url: '#',
-    };
-    const updated = [newDoc, ...docList];
-    setDocList(updated);
-    onUpdateDocuments(updated);
-    setNewDocTitle('');
+  const [hiddenMenus, setHiddenMenus] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('vachira_admin_hidden_menus');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => {
+      setToastMessage((prev) => (prev === msg ? null : prev));
+    }, 3000);
   };
 
-  const handleDeleteDoc = (id: string) => {
-    const updated = docList.filter((d) => d.id !== id);
-    setDocList(updated);
-    onUpdateDocuments(updated);
+  const handleToggleMenuVisibility = (menuId: string) => {
+    let updated: string[];
+    if (hiddenMenus.includes(menuId)) {
+      updated = hiddenMenus.filter((id) => id !== menuId);
+      showToast('เปิดการแสดงผลเมนูเรียบร้อย');
+    } else {
+      updated = [...hiddenMenus, menuId];
+      showToast('ซ่อนเมนูจากแถบข้างเรียบร้อย');
+    }
+    setHiddenMenus(updated);
+    try {
+      localStorage.setItem('vachira_admin_hidden_menus', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('vachira_admin_menus_changed', { detail: updated }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleResetMenus = () => {
+    setHiddenMenus([]);
+    try {
+      localStorage.removeItem('vachira_admin_hidden_menus');
+      window.dispatchEvent(new CustomEvent('vachira_admin_menus_changed', { detail: [] }));
+    } catch (e) {
+      console.error(e);
+    }
+    showToast('คืนค่าการแสดงผลเมนูทั้งหมดเรียบร้อย');
   };
 
   // Add User
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserName || !newUserUsername) return;
+    if (!newUserName.trim() || !newUserUsername.trim()) return;
     const newUser: AdminUser = {
       id: `u_${Date.now()}`,
-      name: newUserName,
-      username: newUserUsername,
+      name: newUserName.trim(),
+      username: newUserUsername.trim(),
       role: newUserRole,
       department: 'กลุ่มงานเภสัชกรรม รพ.วชิระภูเก็ต',
-      email: `${newUserUsername}@vachiraphuket.go.th`,
+      email: `${newUserUsername.trim()}@vachiraphuket.go.th`,
       lastLogin: 'เพิ่งสร้าง',
     };
     const updated = [newUser, ...userList];
@@ -74,108 +110,29 @@ export const AdminServicesAndDocs: React.FC<AdminServicesAndDocsProps> = ({
     onUpdateUsers(updated);
     setNewUserName('');
     setNewUserUsername('');
+    showToast(`เพิ่มผู้ใช้ "${newUser.name}" เรียบร้อยแล้ว`);
   };
 
-  const handleDeleteUser = (id: string) => {
-    if (confirm('ต้องการลบผู้ใช้นี้ออกจากระบบ?')) {
-      const updated = userList.filter((u) => u.id !== id);
-      setUserList(updated);
-      onUpdateUsers(updated);
-    }
+  const handleDeleteUser = (user: AdminUser) => {
+    setDeleteConfirmUser(user);
+  };
+
+  const handleConfirmDeleteUser = () => {
+    if (!deleteConfirmUser) return;
+    const name = deleteConfirmUser.name;
+    const updated = userList.filter((u) => u.id !== deleteConfirmUser.id);
+    setUserList(updated);
+    onUpdateUsers(updated);
+    setDeleteConfirmUser(null);
+    showToast(`ลบผู้ใช้ "${name}" ออกจากระบบเรียบร้อย`);
   };
 
   if (section === 'documents') {
     return (
-      <div className="space-y-6">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-              <FileText className="w-5 h-5 text-emerald-600" />
-              <span>จัดการเอกสารดาวน์โหลด & แบบฟอร์ม</span>
-            </h2>
-            <p className="text-xs text-slate-500 mt-1">
-              เพิ่มและจัดการแบบฟอร์มขอรับบริการ คู่มือยา และเอกสาร PDF
-            </p>
-          </div>
-        </div>
-
-        {/* Add Form */}
-        <form onSubmit={handleAddDoc} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs text-xs space-y-3">
-          <div className="font-bold text-slate-800">เพิ่มเอกสารดาวน์โหลดใหม่:</div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <input
-                type="text"
-                placeholder="ชื่อเอกสารหรือแบบฟอร์ม *"
-                required
-                value={newDocTitle}
-                onChange={(e) => setNewDocTitle(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl border-slate-300"
-              />
-            </div>
-            <div>
-              <select
-                value={newDocCategory}
-                onChange={(e) => setNewDocCategory(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl border-slate-300 bg-white"
-              >
-                <option value="บริการผู้ป่วย">บริการผู้ป่วย</option>
-                <option value="คู่มือการใช้ยา">คู่มือการใช้ยา</option>
-                <option value="โครงการลดความแออัด">โครงการลดความแออัด</option>
-                <option value="สำหรับบุคลากรทางการแพทย์">สำหรับบุคลากรทางการแพทย์</option>
-              </select>
-            </div>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="ขนาดไฟล์ เช่น 1.5 MB"
-                value={newDocSize}
-                onChange={(e) => setNewDocSize(e.target.value)}
-                className="w-full px-3 py-2 border rounded-xl border-slate-300"
-              />
-              <button
-                type="submit"
-                className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold shrink-0 shadow-xs"
-              >
-                + เพิ่มไฟล์
-              </button>
-            </div>
-          </div>
-        </form>
-
-        {/* List */}
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="py-3 px-4">ชื่อเอกสาร</th>
-                <th className="py-3 px-4">หมวดหมู่</th>
-                <th className="py-3 px-4">ขนาด</th>
-                <th className="py-3 px-4">ดาวน์โหลด</th>
-                <th className="py-3 px-4 text-center">ลบ</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {docList.map((d) => (
-                <tr key={d.id} className="hover:bg-slate-50">
-                  <td className="py-3 px-4 font-bold text-slate-900">{d.title}</td>
-                  <td className="py-3 px-4">{d.category}</td>
-                  <td className="py-3 px-4 text-slate-500">{d.fileSize}</td>
-                  <td className="py-3 px-4 text-slate-500">{d.downloads} ครั้ง</td>
-                  <td className="py-3 px-4 text-center">
-                    <button
-                      onClick={() => handleDeleteDoc(d.id)}
-                      className="p-1.5 text-red-600 hover:bg-red-50 rounded-md"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <AdminDocumentManager
+        documents={documents}
+        onUpdateDocuments={onUpdateDocuments}
+      />
     );
   }
 
@@ -270,8 +227,9 @@ export const AdminServicesAndDocs: React.FC<AdminServicesAndDocsProps> = ({
                   <td className="py-3 px-4 text-center">
                     {u.username !== 'admin' && (
                       <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-md"
+                        onClick={() => handleDeleteUser(u)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                        title="ลบผู้ใช้นี้"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -282,6 +240,78 @@ export const AdminServicesAndDocs: React.FC<AdminServicesAndDocsProps> = ({
             </tbody>
           </table>
         </div>
+
+        {/* Delete User In-App Confirmation Modal */}
+        {deleteConfirmUser && (
+          <div
+            className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4"
+            onClick={() => setDeleteConfirmUser(null)}
+          >
+            <div
+              className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 text-rose-600">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5 text-rose-600" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">ยืนยันการลบผู้ใช้งาน</h3>
+                  <p className="text-xs text-slate-500">บัญชีผู้ใช้นี้จะไม่สามารถเข้าถึงระบบแอดมินได้อีก</p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">ชื่อ - สกุล:</span>
+                  <span className="font-bold text-slate-900">{deleteConfirmUser.name}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Username:</span>
+                  <span className="font-semibold text-slate-700">{deleteConfirmUser.username}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">บทบาท:</span>
+                  <span className="font-semibold text-emerald-800">
+                    {deleteConfirmUser.role === 'admin' ? 'ผู้ดูแลระบบ' : deleteConfirmUser.role === 'pharmacist' ? 'เภสัชกร' : 'เจ้าหน้าที่'}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setDeleteConfirmUser(null)}
+                  className="px-4 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                >
+                  ยกเลิก
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDeleteUser}
+                  className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-xs transition-colors flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>ยืนยันลบผู้ใช้นี้</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Toast Notification */}
+        {toastMessage && (
+          <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-bounce text-xs font-semibold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{toastMessage}</span>
+            <button
+              onClick={() => setToastMessage(null)}
+              className="p-1 text-slate-400 hover:text-white ml-2"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -386,6 +416,109 @@ export const AdminServicesAndDocs: React.FC<AdminServicesAndDocsProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Admin Sidebar Navigation Manager (Customize/Hide/Delete Menu Items) */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4 text-xs">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+              <Sliders className="w-4 h-4 text-emerald-600" />
+              <span>จัดการการแสดงผลเมนูแอดมิน (ซ่อน / ลบเมนูจากแถบนำทาง)</span>
+            </h3>
+            <p className="text-slate-500 text-[11px] mt-0.5">
+              คุณสามารถคลิกเพื่อซ่อน (ลบชั่วคราว) เมนูที่ไม่จำเป็นออกจากแถบเมนูด้านซ้ายได้ตามต้องการ
+            </p>
+          </div>
+          {hiddenMenus.length > 0 && (
+            <button
+              onClick={handleResetMenus}
+              className="px-3 py-1.5 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 font-semibold flex items-center gap-1 text-[11px] shrink-0"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>คืนค่าแสดงทุกเมนู ({hiddenMenus.length} เมนูที่ซ่อนอยู่)</span>
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {[
+            { id: 'dashboard', label: 'Dashboard ภาพรวม', icon: '📊', desc: 'หน้าสรุปภาพรวมและสถิติหลัก' },
+            { id: 'consultations', label: 'ข้อความปรึกษาเภสัชกร', icon: '💬', desc: 'การจัดการแชทและติดต่อกลับผู้ป่วย' },
+            { id: 'drugs', label: 'จัดการข้อมูลยา', icon: '💊', desc: 'ค้นหา เพิ่ม แก้ไข และลบรายการยา' },
+            { id: 'infographics', label: 'จัดการขั้นตอนรับยา (3 รูป)', icon: '🖼️', desc: 'ภาพ Infographic แสดงขั้นตอนบริการ' },
+            { id: 'banner', label: 'จัดการ Banner หน้าแรก', icon: '🎛️', desc: 'แบนเนอร์ประชาสัมพันธ์หน้าหลัก' },
+            { id: 'news', label: 'จัดการข่าวสาร', icon: '📰', desc: 'ข่าวประชาสัมพันธ์ กิจกรรมกลุ่มงานเภสัชกรรม' },
+            { id: 'knowledge', label: 'จัดการคลังความรู้', icon: '📚', desc: 'บทความสาระความรู้เรื่องยา' },
+            { id: 'documents', label: 'จัดการเอกสารดาวน์โหลด', icon: '📄', desc: 'ไฟล์แบบฟอร์มและเอกสารดาวน์โหลด' },
+            { id: 'users', label: 'จัดการผู้ใช้งาน', icon: '👥', desc: 'บัญชีผู้ใช้แอดมินและเภสัชกร' },
+            { id: 'stats', label: 'สถิติระบบ', icon: '📈', desc: 'กราฟและรายงานการให้บริการ' },
+          ].map((item) => {
+            const isHidden = hiddenMenus.includes(item.id);
+            return (
+              <div
+                key={item.id}
+                className={`p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                  isHidden
+                    ? 'bg-slate-50 border-dashed border-slate-300 opacity-60'
+                    : 'bg-white border-slate-200 shadow-2xs hover:border-emerald-300'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="text-base">{item.icon}</span>
+                  <div className="min-w-0">
+                    <div className="font-bold text-slate-800 truncate flex items-center gap-1.5">
+                      <span>{item.label}</span>
+                      {isHidden && (
+                        <span className="px-1.5 py-0.2 rounded text-[10px] bg-slate-200 text-slate-600 font-normal">
+                          ซ่อนอยู่
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11px] text-slate-400 truncate">{item.desc}</div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleMenuVisibility(item.id)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 ${
+                    isHidden
+                      ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                      : 'bg-rose-50 text-rose-700 hover:bg-rose-100'
+                  }`}
+                  title={isHidden ? 'คลิกเพื่อแสดงเมนูนี้' : 'คลิกเพื่อซ่อนเมนูนี้ออกจากแถบข้าง'}
+                >
+                  {isHidden ? (
+                    <>
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>แสดงเมนู</span>
+                    </>
+                  ) : (
+                    <>
+                      <EyeOff className="w-3.5 h-3.5" />
+                      <span>ซ่อน / ลบออก</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl border border-slate-700 flex items-center gap-3 animate-bounce text-xs font-semibold">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMessage}</span>
+          <button
+            onClick={() => setToastMessage(null)}
+            className="p-1 text-slate-400 hover:text-white ml-2"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

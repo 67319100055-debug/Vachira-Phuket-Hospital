@@ -63,9 +63,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Sidebar Header */}
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-800 to-teal-800 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-xl shadow-inner">
-              🏥
-            </div>
+<div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center p-1.5 shadow-inner overflow-hidden">
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/th/1/12/Logo_of_Vachira_Phuket_Hospital.jpg" 
+    alt="Logo of Vachira Phuket Hospital" 
+    className="w-full h-full object-contain rounded-lg"
+  />
+</div>
             <div>
               <h2 className="font-bold text-sm tracking-tight leading-tight">
                 โรงพยาบาลวชิระภูเก็ต

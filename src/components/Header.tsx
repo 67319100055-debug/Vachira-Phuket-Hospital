@@ -40,9 +40,13 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('home')}
               className="flex items-center gap-2.5 text-left focus:outline-hidden group"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold shadow-xs">
-                🏥
-              </div>
+<div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center p-1.5 shadow-inner overflow-hidden">
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/th/1/12/Logo_of_Vachira_Phuket_Hospital.jpg" 
+    alt="Logo of Vachira Phuket Hospital" 
+    className="w-full h-full object-contain rounded-lg"
+  />
+</div>
               <div className="leading-tight">
                 <div className="font-semibold text-slate-800 text-sm sm:text-base group-hover:text-emerald-700 transition-colors">
                   โรงพยาบาลวชิระภูเก็ต

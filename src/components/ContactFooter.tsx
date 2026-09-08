@@ -35,7 +35,7 @@ export const ContactFooter: React.FC<ContactFooterProps> = ({
               className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-white text-emerald-900 font-bold text-sm hover:bg-emerald-50 shadow-md hover:scale-105 transition-all"
             >
               <Phone className="w-4 h-4 text-emerald-700 animate-bounce" />
-              <span>[โทรติดต่อ 076-361234]</span>
+              <span>โทรติดต่อ 076-361234</span>
             </a>
 
             {onOpenConsult && (

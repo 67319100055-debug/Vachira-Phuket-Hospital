@@ -34,16 +34,7 @@ export const QuickCards: React.FC<QuickCardsProps> = ({
       badge: 'ค้นหาทันที',
       action: onOpenSearch,
     },
-    {
-      id: 'card-queue-check',
-      icon: Clock,
-      iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      hoverBorder: 'hover:border-emerald-300',
-      title: 'ตรวจสอบคิวรับยา',
-      desc: 'ติดตามสถานะการจัดยาและเรียกคิวของผู้ป่วยแบบ Real-time',
-      badge: 'ระบบคิวดิจิทัล',
-      action: onOpenQueue,
-    },
+
     {
       id: 'card-specialty-clinic',
       icon: Heart,

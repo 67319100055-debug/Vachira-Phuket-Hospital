@@ -8,13 +8,15 @@ import {
   AlertTriangle,
   ArrowRight
 } from 'lucide-react';
-import { PublicNavSection } from '../types';
+import { PublicNavSection, Language } from '../types';
+import { TRANSLATIONS } from '../data/translations';
 
 interface QuickCardsProps {
   onOpenSearch: () => void;
   onOpenQueue: () => void;
   onOpenConsult: () => void;
   onNavigate: (section: PublicNavSection) => void;
+  language?: Language;
 }
 
 export const QuickCards: React.FC<QuickCardsProps> = ({
@@ -22,27 +24,40 @@ export const QuickCards: React.FC<QuickCardsProps> = ({
   onOpenQueue,
   onOpenConsult,
   onNavigate,
+  language = 'th',
 }) => {
+  const t = TRANSLATIONS[language];
+  const isEn = language === 'en';
+
   const cards = [
     {
       id: 'card-drug-search',
       icon: Search,
       iconBg: 'bg-blue-50 text-blue-600 border-blue-200',
       hoverBorder: 'hover:border-blue-300',
-      title: 'ค้นหาข้อมูลยา',
-      desc: 'ตรวจสอบวิธีใช้ คำเตือน และคำแนะนำการใช้ยาเบื้องต้น',
-      badge: 'ค้นหาทันที',
+      title: isEn ? t.cardSearchTitle : 'ค้นหาข้อมูลยา',
+      desc: isEn ? t.cardSearchDesc : 'ตรวจสอบวิธีใช้ คำเตือน และคำแนะนำการใช้ยาเบื้องต้น',
+      badge: isEn ? 'Search' : 'ค้นหาทันที',
       action: onOpenSearch,
     },
-
+    {
+      id: 'card-queue-check',
+      icon: Clock,
+      iconBg: 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      hoverBorder: 'hover:border-emerald-300',
+      title: isEn ? t.cardQueueTitle : 'ตรวจสอบคิวรับยา',
+      desc: isEn ? t.cardQueueDesc : 'ติดตามสถานะการจัดยาและเรียกคิวของผู้ป่วยแบบ Real-time',
+      badge: isEn ? 'Digital Queue' : 'ระบบคิวดิจิทัล',
+      action: onOpenQueue,
+    },
     {
       id: 'card-specialty-clinic',
       icon: Heart,
       iconBg: 'bg-rose-50 text-rose-600 border-rose-200',
       hoverBorder: 'hover:border-rose-300',
-      title: 'คลินิกเฉพาะทาง',
-      desc: 'บริการบริบาลเภสัชกรรมเฉพาะโรค วาร์ฟาริน เบาหวาน หอบหืด',
-      badge: 'นัดปรึกษา',
+      title: isEn ? 'Specialty Clinics' : 'คลินิกเฉพาะทาง',
+      desc: isEn ? 'Warfarin, Asthma, Diabetes, COPD & CKD clinical pharmacy clinics' : 'บริการบริบาลเภสัชกรรมเฉพาะโรค วาร์ฟาริน เบาหวาน หอบหืด',
+      badge: isEn ? 'Clinical Care' : 'นัดปรึกษา',
       action: () => onNavigate('services_care'),
     },
     {
@@ -50,9 +65,9 @@ export const QuickCards: React.FC<QuickCardsProps> = ({
       icon: Package,
       iconBg: 'bg-amber-50 text-amber-600 border-amber-200',
       hoverBorder: 'hover:border-amber-300',
-      title: 'บริการเติมยา',
-      desc: 'ข้อมูลขั้นตอนการรับยาต่อเนื่อง ส่งพัสดุไปรษณีย์ถึงบ้าน',
-      badge: 'ลดเวลารอ',
+      title: isEn ? t.cardRefillTitle : 'เติมยา & Health Rider',
+      desc: isEn ? t.cardRefillDesc : 'รับยาโรคเรื้อรังต่อเนื่อง ส่งยาถึงบ้านผ่านไรเดอร์ หรือรับที่ร้านยาใกล้บ้าน',
+      badge: isEn ? 'Fast Delivery' : 'ไม่ต้องรอคิวตรวจ',
       action: () => onNavigate('services_refill'),
     },
     {
@@ -60,9 +75,9 @@ export const QuickCards: React.FC<QuickCardsProps> = ({
       icon: UserCheck,
       iconBg: 'bg-teal-50 text-teal-600 border-teal-200',
       hoverBorder: 'hover:border-teal-300',
-      title: 'ปรึกษาเภสัชกร',
-      desc: 'ช่องทางติดต่อและขอรับคำปรึกษาปัญหายากับเภสัชกรโดยตรง',
-      badge: 'สายด่วน & แชท',
+      title: isEn ? t.cardConsultTitle : 'ปรึกษาเภสัชกร',
+      desc: isEn ? t.cardConsultDesc : 'ช่องทางติดต่อและขอรับคำปรึกษาปัญหายากับเภสัชกรโดยตรง',
+      badge: isEn ? 'Hotline & Chat' : 'สายด่วน & แชท',
       action: onOpenConsult,
     },
     {
@@ -70,9 +85,9 @@ export const QuickCards: React.FC<QuickCardsProps> = ({
       icon: AlertTriangle,
       iconBg: 'bg-purple-50 text-purple-600 border-purple-200',
       hoverBorder: 'hover:border-purple-300',
-      title: 'การใช้ยาอย่างปลอดภัย',
-      desc: 'ความรู้เรื่องยา การแพ้ยา อาการไม่พึงประสงค์ และการใช้ยาอย่างสมเหตุผล',
-      badge: 'คู่มือความปลอดภัย',
+      title: isEn ? t.cardSafetyTitle : 'การใช้ยาอย่างปลอดภัย',
+      desc: isEn ? t.cardSafetyDesc : 'ความรู้เรื่องยา การแพ้ยา อาการไม่พึงประสงค์ และการใช้ยาอย่างสมเหตุผล',
+      badge: isEn ? 'Safety Guide' : 'คู่มือความปลอดภัย',
       action: () => onNavigate('safe_rdu'),
     },
   ];
@@ -82,10 +97,10 @@ export const QuickCards: React.FC<QuickCardsProps> = ({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
-            <span>⚡ เมนูด่วนบริการประชาชน</span>
+            <span>{isEn ? '⚡ Quick Public Services' : '⚡ เมนูด่วนบริการประชาชน'}</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">
-            เข้าถึงบริการทางเภสัชกรรมและข้อมูลสำคัญได้อย่างสะดวกรวดเร็ว
+            {isEn ? 'Fast access to Vachira Phuket pharmacy services and public resources' : 'เข้าถึงบริการทางเภสัชกรรมและข้อมูลสำคัญได้อย่างสะดวกรวดเร็ว'}
           </p>
         </div>
       </div>

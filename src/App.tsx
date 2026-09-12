@@ -15,6 +15,7 @@ import {
   StepInfographic,
   BannerConfig,
   PharmacistConsultationItem,
+  Language,
 } from './types';
 import {
   INITIAL_DRUGS,
@@ -68,6 +69,29 @@ export default function App() {
   // Public Navigation State
   const [activeSection, setActiveSection] = useState<PublicNavSection>('home');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Language State: 'th' | 'en' (stored in localStorage)
+  const [language, setLanguage] = useState<Language>(() => {
+    try {
+      const savedLang = localStorage.getItem('vachira_phuket_lang');
+      if (savedLang === 'th' || savedLang === 'en') {
+        return savedLang;
+      }
+    } catch (e) {
+      console.warn('Could not read language from localStorage', e);
+    }
+    return 'th';
+  });
+
+  // Persist language change
+  const handleSelectLanguage = (newLang: Language) => {
+    setLanguage(newLang);
+    try {
+      localStorage.setItem('vachira_phuket_lang', newLang);
+    } catch (e) {
+      console.warn('Could not persist language to localStorage', e);
+    }
+  };
 
   // Modals
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -455,6 +479,8 @@ export default function App() {
         onOpenQueueModal={() => setIsQueueOpen(true)}
         onOpenSearchModal={() => setIsSearchOpen(true)}
         onOpenConsultModal={() => setIsConsultOpen(true)}
+        language={language}
+        onSelectLanguage={handleSelectLanguage}
       />
 
       {/* Sidebar Navigation */}
@@ -463,6 +489,7 @@ export default function App() {
         onClose={() => setIsSidebarOpen(false)}
         activeSection={activeSection}
         onNavigate={handleSelectPublicSection}
+        language={language}
         onOpenAdminLogin={() => {
           setIsSidebarOpen(false);
           setAppMode('admin_login');
@@ -476,12 +503,14 @@ export default function App() {
             {/* 2. Hero Banner */}
             <HeroBanner
               bannerConfig={bannerConfig}
+              language={language}
               onOpenDrugGuide={() => handleSelectPublicSection('drugs_usage')}
               onOpenConsult={() => setIsConsultOpen(true)}
             />
 
             {/* 3. Quick Action Cards (6 Cards) */}
             <QuickCards
+              language={language}
               onOpenSearch={() => setIsSearchOpen(true)}
               onOpenQueue={() => setIsQueueOpen(true)}
               onOpenConsult={() => setIsConsultOpen(true)}
@@ -523,6 +552,7 @@ export default function App() {
 
       {/* 8. Footer with Contact & discreet Admin Access */}
       <ContactFooter
+        language={language}
         onOpenConsult={() => setIsConsultOpen(true)}
         onOpenAdminLogin={() => setAppMode('admin_login')}
       />

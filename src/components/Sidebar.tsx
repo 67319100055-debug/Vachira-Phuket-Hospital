@@ -15,7 +15,8 @@ import {
   Hospital,
   Sparkles
 } from 'lucide-react';
-import { PublicNavSection } from '../types';
+import { PublicNavSection, Language } from '../types';
+import { TRANSLATIONS } from '../data/translations';
 
 interface SidebarProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface SidebarProps {
   activeSection: PublicNavSection;
   onNavigate: (section: PublicNavSection) => void;
   onOpenAdminLogin: () => void;
+  language?: Language;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -31,7 +33,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   activeSection,
   onNavigate,
   onOpenAdminLogin,
+  language = 'th',
 }) => {
+  const t = TRANSLATIONS[language];
   // Accordion state
   const [openDrugMenu, setOpenDrugMenu] = useState(true);
   const [openSafetyMenu, setOpenSafetyMenu] = useState(false);
@@ -72,10 +76,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 </div>
             <div>
               <h2 className="font-bold text-sm tracking-tight leading-tight">
-                โรงพยาบาลวชิระภูเก็ต
+                {t.hospitalName}
               </h2>
               <p className="text-xs text-emerald-200 font-medium mt-0.5">
-                กลุ่มงานเภสัชกรรม
+                {t.pharmacyDept}
               </p>
             </div>
           </div>
@@ -101,7 +105,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Home className="w-5 h-5 text-emerald-600" />
-            <span>หน้าแรก</span>
+            <span>{t.home}</span>
           </button>
 
           {/* 💊 ข้อมูลยา (Accordion) */}
@@ -113,7 +117,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-3">
                 <Pill className="w-5 h-5 text-emerald-600" />
-                <span className="font-semibold text-slate-800">ข้อมูลยา</span>
+                <span className="font-semibold text-slate-800">{t.drugInfo}</span>
               </div>
               {openDrugMenu ? (
                 <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -133,7 +137,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ รายการยา (บัญชียา)
+                  ├─ {t.drugList}
                 </button>
                 <button
                   id="nav-drugs-search"
@@ -144,7 +148,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ ค้นหาข้อมูลยา
+                  ├─ {t.searchDrugInfo}
                 </button>
                 <button
                   id="nav-drugs-usage"
@@ -155,7 +159,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ วิธีใช้ยา
+                  ├─ {t.howToUseDrug}
                 </button>
                 <button
                   id="nav-drugs-warning"
@@ -166,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ คำเตือนและข้อควรระวัง
+                  ├─ {t.drugWarnings}
                 </button>
                 <button
                   id="nav-drugs-interactions"
@@ -177,7 +181,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  └─ ปฏิกิริยาระหว่างยา
+                  └─ {t.drugInteractions}
                 </button>
               </div>
             )}
@@ -192,7 +196,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-500" />
-                <span className="font-semibold text-slate-800">การใช้ยาอย่างปลอดภัย</span>
+                <span className="font-semibold text-slate-800">{t.drugSafety}</span>
               </div>
               {openSafetyMenu ? (
                 <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -212,7 +216,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ การใช้ยาอย่างสมเหตุผล (RDU)
+                  ├─ {t.rationalDrugUse}
                 </button>
                 <button
                   id="nav-safe-allergy"
@@ -223,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ การแพ้ยา (Drug Allergy)
+                  ├─ {t.drugAllergy}
                 </button>
                 <button
                   id="nav-safe-adr"
@@ -234,7 +238,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  └─ อาการไม่พึงประสงค์จากยา (ADR)
+                  └─ {t.adr}
                 </button>
               </div>
             )}
@@ -249,7 +253,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             >
               <div className="flex items-center gap-3">
                 <ClipboardList className="w-5 h-5 text-teal-600" />
-                <span className="font-semibold text-slate-800">บริการเภสัชกรรม</span>
+                <span className="font-semibold text-slate-800">{t.pharmacyServices}</span>
               </div>
               {openServiceMenu ? (
                 <ChevronDown className="w-4 h-4 text-slate-400" />
@@ -269,7 +273,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ บริการผู้ป่วยนอก (OPD)
+                  ├─ {t.opdServices}
                 </button>
                 <button
                   id="nav-services-ipd"
@@ -280,7 +284,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ บริการผู้ป่วยใน (IPD)
+                  ├─ {t.ipdServices}
                 </button>
                 <button
                   id="nav-services-care"
@@ -291,7 +295,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  ├─ บริบาลเภสัชกรรม (คลินิกเฉพาะทาง)
+                  ├─ {t.clinicalServices}
                 </button>
                 <button
                   id="nav-services-refill"
@@ -302,7 +306,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
                   }`}
                 >
-                  └─ บริการเติมยา (ส่งยาทางไปรษณีย์)
+                  └─ {t.refillServices}
                 </button>
               </div>
             )}
@@ -319,7 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <BookOpen className="w-5 h-5 text-indigo-600" />
-            <span>ความรู้เรื่องยา</span>
+            <span>{t.drugKnowledge}</span>
           </button>
 
           {/* 📰 ข่าวสารกิจกรรม */}
@@ -333,7 +337,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Newspaper className="w-5 h-5 text-blue-600" />
-            <span>ข่าวสารกิจกรรม</span>
+            <span>{t.newsAnnouncements}</span>
           </button>
 
           {/* 📄 เอกสารดาวน์โหลด */}
@@ -347,7 +351,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <FileText className="w-5 h-5 text-emerald-600" />
-            <span>เอกสารดาวน์โหลด</span>
+            <span>{t.documentsDownloads}</span>
           </button>
 
           {/* 📞 ติดต่อเรา */}
@@ -361,7 +365,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <PhoneCall className="w-5 h-5 text-amber-600" />
-            <span>ติดต่อเรา</span>
+            <span>{t.contactUs}</span>
           </button>
         </div>
 
@@ -385,3 +389,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
     </>
   );
 };
+

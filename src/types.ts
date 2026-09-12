@@ -141,3 +141,6 @@ export type AdminSection =
   | 'users'
   | 'stats'
   | 'settings';
+
+export type Language = 'th' | 'en';
+

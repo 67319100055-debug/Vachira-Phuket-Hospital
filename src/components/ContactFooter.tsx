@@ -75,8 +75,7 @@ export const ContactFooter: React.FC<ContactFooterProps> = ({
           {/* Col 2: 📞 โทรศัพท์ */}
           <div className="space-y-2">
             <h4 className="text-white font-semibold text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Phone className="w-4 h-4 text-emerald-400" />
- 
+               <span>📞 โทรศัพท์และสายด่วน</span>
             </h4>
             <ul className="space-y-1.5 text-xs text-slate-400">
               {CONTACT_INFO.phones.map((p, idx) => (

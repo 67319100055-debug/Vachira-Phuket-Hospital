@@ -1,6 +1,7 @@
 import React from 'react';
-import { Menu, Phone, Clock, Search, ShieldCheck } from 'lucide-react';
-import { PublicNavSection } from '../types';
+import { Menu, Phone, Clock, Search, ShieldCheck, Globe } from 'lucide-react';
+import { PublicNavSection, Language } from '../types';
+import { TRANSLATIONS } from '../data/translations';
 
 interface HeaderProps {
   onToggleSidebar: () => void;
@@ -10,6 +11,8 @@ interface HeaderProps {
   onOpenQueueModal: () => void;
   onOpenSearchModal: () => void;
   onOpenConsultModal: () => void;
+  language: Language;
+  onSelectLanguage: (lang: Language) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -19,7 +22,11 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQueueModal,
   onOpenSearchModal,
   onOpenConsultModal,
+  language,
+  onSelectLanguage,
 }) => {
+  const t = TRANSLATIONS[language];
+
   return (
     <header className="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-xs transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,10 +56,10 @@ export const Header: React.FC<HeaderProps> = ({
 </div>
               <div className="leading-tight">
                 <div className="font-semibold text-slate-800 text-sm sm:text-base group-hover:text-emerald-700 transition-colors">
-                  โรงพยาบาลวชิระภูเก็ต
+                  {t.hospitalName}
                 </div>
                 <div className="text-xs text-emerald-700 font-medium">
-                  กลุ่มงานเภสัชกรรม
+                  {t.pharmacyDept}
                 </div>
               </div>
             </button>
@@ -65,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => onNavigate('home')}
               className="hidden md:inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 hover:text-emerald-700 hover:bg-emerald-50 transition-colors"
             >
-              หน้าแรก
+              {t.home}
             </button>
 
             <button
@@ -74,7 +81,16 @@ export const Header: React.FC<HeaderProps> = ({
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:text-emerald-700 hover:bg-slate-100 border border-slate-200 transition-colors"
             >
               <Search className="w-4 h-4 text-emerald-600" />
-              <span>ค้นหายา</span>
+              <span>{t.searchDrug}</span>
+            </button>
+
+            <button
+              id="header-quick-queue-btn"
+              onClick={onOpenQueueModal}
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors"
+            >
+              <Clock className="w-4 h-4 text-emerald-600" />
+              <span>{t.checkQueue}</span>
             </button>
 
             <button
@@ -83,7 +99,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 shadow-xs transition-colors"
             >
               <Phone className="w-4 h-4" />
-              <span>ติดต่อเจ้าหน้าที่</span>
+              <span className="hidden sm:inline">{t.contactStaff}</span>
             </button>
 
             <button
@@ -92,11 +108,51 @@ export const Header: React.FC<HeaderProps> = ({
               className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition-colors"
             >
               <ShieldCheck className="w-4 h-4 text-teal-600" />
-              <span>ปรึกษาเภสัชกร</span>
+              <span>{t.consultPharmacist}</span>
             </button>
+
+            {/* Clickable Interactive Language Switcher for TH / EN */}
+            <div
+              id="language-switcher"
+              className="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-2xs"
+              role="group"
+              aria-label="เลือกภาษา / Select Language"
+            >
+              <button
+                id="btn-lang-th"
+                type="button"
+                onClick={() => onSelectLanguage('th')}
+                aria-pressed={language === 'th'}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 ${
+                  language === 'th'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-emerald-700 hover:bg-white/60'
+                }`}
+                title="เปลี่ยนเป็นภาษาไทย"
+              >
+                <span>TH</span>
+              </button>
+              <button
+                id="btn-lang-en"
+                type="button"
+                onClick={() => onSelectLanguage('en')}
+                aria-pressed={language === 'en'}
+                className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1 ${
+                  language === 'en'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-emerald-700 hover:bg-white/60'
+                }`}
+                title="Switch to English"
+              >
+                <Globe className="w-3 h-3" />
+                <span>EN</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </header>
   );
 };
+
+

@@ -130,6 +130,7 @@ export type PublicNavSection =
 
 export type AdminSection =
   | 'dashboard'
+  | 'queues'
   | 'consultations'
   | 'drugs'
   | 'services'
@@ -143,4 +144,6 @@ export type AdminSection =
   | 'settings';
 
 export type Language = 'th' | 'en';
+
+export type { BackgroundConfig } from './types/background';
 

@@ -92,7 +92,6 @@ export const ContactFooter: React.FC<ContactFooterProps> = ({
           {/* Col 3: 📍 ที่ตั้ง & 📧 Email */}
           <div className="space-y-2">
             <h4 className="text-white font-semibold text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
-              <MapPin className="w-4 h-4 text-emerald-400" />
               <span>📍 ที่ตั้ง & 📧 Email</span>
             </h4>
             <div className="text-xs text-slate-400 space-y-2">
@@ -113,7 +112,6 @@ export const ContactFooter: React.FC<ContactFooterProps> = ({
           {/* Col 4: 🕐 เวลาทำการ */}
           <div className="space-y-2">
             <h4 className="text-white font-semibold text-sm flex items-center gap-2 border-b border-slate-800 pb-2">
-              <Clock className="w-4 h-4 text-emerald-400" />
               <span>🕐 เวลาทำการ</span>
             </h4>
             <div className="space-y-2 text-xs text-slate-400">
